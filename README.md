@@ -389,7 +389,7 @@ ggplot(data_clim_monthly) +
   coord_fixed(ratio = 0.5)
 ```
 
-![](HYDRESPONSES_code_examples_files/figure-gfm/climatology_monthly-1.png)<!-- -->
+![](https://github.com/codicolus/HYD-RESPONSES/blob/main/figs/Q_climatology.png)<!-- -->
 
 ### Streamflow drought events
 
@@ -592,7 +592,7 @@ data_combined %>%
     ## Warning: Removed 122 rows containing non-finite outside the scale range
     ## (`stat_boxplot()`).
 
-![](HYDRESPONSES_code_examples_files/figure-gfm/events_nonevents-1.png)<!-- -->
+![](https://github.com/codicolus/HYD-RESPONSES/blob/main/figs/example_composite.png)<!-- -->
 
 You have reached the end of this tutorial!
 
