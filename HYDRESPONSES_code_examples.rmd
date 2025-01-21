@@ -1,0 +1,334 @@
+---
+title: "HYD-RESPONSES Code Examples"
+author: "Christoph von Matt"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+This documents provides an exploratory overview of the main data products provided
+within the HYD-RESPONSES dataset (see source). The dataset consists of daily catchment-level
+time series data extracted from gridded hydro-meteorological datasets provided by
+MeteoSwiss, SLF and ECMWF. Further derived indicators related to snow, water balance,
+streamflow and deficit accumulation (CWD, SPI, SMRI, SPEI) are provided.
+
+The code examples provide a guidance on:
+
+* how to read-in the data
+* how to combine data products
+* how to select specific variables
+* an example use and visualization of data
+
+## Loading required libraries
+```{r libraries, echo=TRUE}
+# use package manager
+if(!require("pacman")) install.packages("pacman")
+
+# load required libraries
+pacman::p_load("ggplot2", "readr", "dplyr", "forcats", "tidyr", "lubridate",
+                    "purrr", "stringr", "tibble", "sf")
+
+```
+
+## Folder structure
+
+Data is stored in the folder `data` and contains subfolders for each product and
+shapefiles for both catchment outlets and outlines.
+
+Available subfolders are:
+
+* `01_timeseries`: Time series data
+* `02_climatology`: Climatological information for the reference period 1991-2020
+* `03_descriptive`: Information on catchment characteristics (climatological, terrestrial, ...)
+
+The ESRI-file format only allows for a limited number of characters for column names.
+Both catchment outlets and outlines thus only contain the geometries and catchment-identifiers (`ctchmnt`) and no additional information to minimize information loss in column names. Renaming to `catchmentnr` is suggested for cross-data compatibility.
+
+```{r folder_structure}
+# data directory
+dir_data <- "../data/"
+list.files(dir_data)
+
+# read-in catchment outlets
+catchment_outlets <- read_sf(file.path(dir_data, "catchment_outlets.shp"))
+catchment_outlets
+
+# rename for compatibility
+catchment_outlets <- catchment_outlets %>% 
+  rename(catchmentnr = ctchmnt)
+
+```
+
+## Read-in data products
+
+Starting from catchment outlets (or catchment outlines), data products can be loaded and combined via the catchment identifiers.
+
+All data files are stored as deliminator-separated csv-files (;) as river and place
+name character strings contain commas.
+
+```{r data_products}
+# data directories
+dir_timeseries <- file.path(dir_data, "01_timeseries")
+dir_climatology <- file.path(dir_data, "02_climatology")
+dir_descriptors <- file.path(dir_data, "03_descriptive")
+```
+
+### Catchment characteristics
+
+It is generally a good idea to complement the catchment identifiers with the general station information which contain basic catchment characteristics (e.g., river and place name,
+catchment area, mean height, glaciation percentage) but also information on the **station-specific** streamflow time series availability. Data availability is provided
+for the full (`start_date`) , continuous (`start_date_continuous`) and homogeneous (`start_date_homogeneous`). For catchments where neither breakpoints nor gaps were detected,
+the availability is identical for all.
+
+```{r descriptors}
+
+# check available files
+list.files(dir_descriptors)
+
+# complement catchment identifiers
+catchment_outlets <- catchment_outlets %>% 
+  left_join(
+    read_delim(
+      file.path(dir_descriptors, "HYDRESPONSES_descriptive_general_station_information.csv")
+    )
+  )
+
+# information on data availability
+catchment_outlets %>% 
+  dplyr::select(catchmentnr, water_name, place, contains(c("start_date", "end_date"))) %>% 
+  st_drop_geometry()
+
+```
+
+### Time series data
+
+Time series are available for the following products:
+
+* `01_base_variables`: basic (non-altered) hydro-meteorological variables extracted from gridded products
+* `02_derived_variables`: information derived from basic variables on snow ($\Delta$SWE), water balance (P-E) and streamflow (7d average streamflow) and combinations thereof
+* `03_anomalies`: standardized anomalies (z-scores: (value - mean)/sd)) for all variables across products and for multiple scales (daily, monthly: 31d, seasonal: 91d)
+* `04_standardized_indices`: Time series of SPI, SPEI and SMRI
+* `05_cumulative_deficits`: cumulative deficits of (potential) water balance and streamflow time series
+* `06_events_nrs`: Time series of numbered streamflow drought events based on variable and fixed threshold definitions (values below threshold)
+
+
+
+```{r timeseries_overview}
+
+# check available files
+list.files(dir_timeseries)
+
+```
+
+Monthly standardized anomalies are loaded for example catchment *2034 - Broye, Payerne (Caserne d' aviation)* which will be used for demonstration in the remaining part of this guide on the HYD-RESPONSES dataset. Note that only the data is only used for the homogeneous streamflow period.
+
+```{r timeseries}
+
+# check available files
+list.files(file.path(dir_timeseries, "03_anomalies", "zscores")) %>%
+  head(10)
+
+# select example catchment
+catchment_2034 <- catchment_outlets %>% 
+  filter(catchmentnr == "2034")
+
+# load the monthly (31d = scale_31) anomalies and filter only for the homogeneous streamflow period
+data_anomalies <- read_delim(
+  file.path(
+    dir_timeseries, "03_anomalies", "zscores", "HYDRESPONSES_zscores_scale_31_catchment_2034.csv"
+  )
+) %>% 
+  filter(date >= catchment_2034$start_date_usable)
+
+```
+
+### Climatology
+
+Each catchment is classified by a specific streamflow regime type which is available in the
+already loaded general catchment characteristics (`FOEN_regime_type`). For catchment 2034, the characteristic streamflow regime is characterized as **pluvial inférieur**. Streamflow regime types are classified by considering the annual streamflow climatology.
+
+Data on climatologies for all time series products are provided both DOY-based (for each day of the year, folder "DOY_movingwindow") and regular. DOY-based climatologies were assessed by using a moving window centered on the specific day for the specific scale (e.g., monthly = day - 15 to day + 15). Regular climatologies are provided per month, season, extended season and yearly.
+
+To get an impression of how the characteristic streamflow regime type looks like, we first load the regular climatology and visualize the monthly mean streamflow levels.
+
+(This may take some seconds longer as climatologies provide a comprehensive set of statistics...)
+
+```{r climatology}
+
+# check available files
+list.files(file.path(dir_climatology, "regular")) %>% 
+  head(10)
+
+# load regular climatology
+data_clim <- read_delim(
+  file.path(
+    dir_climatology, "regular", "HYDRESPONSES_climatology_regular_catchment_2034.csv"
+  )
+)
+data_clim
+```
+
+
+The files containing climatological information contain climatologies for all scales and the
+desired scale has to be selected before use (`time_scale`). Note that depending on scale, either the columns month, season or extended_season contain the information on the specific category. For a monthly climatology this corresponds to the month (1--12), for season to *DJF* (winter), *MAM* (spring), *JJA* (summer) and *SON* (autumn) and for extended_season *summer* (May -- October) and *winter* (November -- March).
+
+Here, we are only interested in the monthly streamflow (*Q*) climatology.
+
+
+```{r climatology_monthly}
+
+# filter monthly climatology
+data_clim_monthly <- data_clim %>% 
+  filter(time_scale == "monthly")
+
+
+# visualize the monthly streamflow climatology
+ggplot(data_clim_monthly) +
+  # visualize the IQR
+  geom_ribbon(
+    aes(month, ymin = Q_q25, ymax = Q_q75),
+    alpha = 0.5, color = "grey60"
+  ) +
+  # visualize the monthly median streamflow
+  geom_line(
+    aes(month, Q_med)
+  ) +
+  scale_x_continuous("Month", breaks = 1:12) +
+  scale_y_continuous("m3/s") +
+  labs(
+    # use catchment descriptors for title
+    title = str_c(
+      catchment_2034$catchmentnr, " - ", catchment_2034$water_name, " / ",
+      catchment_2034$place, 
+      " (", catchment_2034$WISKI_regime_type, ")"
+    )
+  ) +
+  coord_fixed(ratio = 0.5)
+
+```
+
+### Streamflow drought events
+
+Time series on events defined by fixed and variable threshold definitions are provided for streamflow droughts (`hydrological_events`) and for cumulative deficits for both streamflow (*CQWD*) and (potential) water balance (*CWD* and *CPWD*). For the subsequent analysis we are interested in streamflow droughts phases.
+
+```{r eventseries}
+# check streamflow drought files
+list.files(file.path(dir_timeseries, "06_events_nrs", "hydrological_events")) %>% 
+  head(10)
+
+# load streamflow drought event time series
+data_droughts <- read_delim(
+  file.path(
+    dir_timeseries, "06_events_nrs", "hydrological_events", "HYDRESPONSES_eventseries_hydroevents_catchment_2034.csv"
+  )
+)
+
+```
+
+Streamflow drought event series are available for variable and fixed threshold definitions.
+Variable thresholds include monthly (`perc_31`) and seasonal (`perc_91`) percentiles. The only fixed threshold is the `Q347` which corresponds roughly to a yearly 5th-percentile derived based on the flow duration curve (FDC).
+
+Here we use the yearly Q347-based streamflow drought series derived from 7 daily average streamflow (M7Q) series (`M7Q_Q347_0`).
+
+Each event definition has two columns. In columns with `_event_nr`, drought phases are successively numbered while in columns with `_event_days_cumulative` days below the threshold are successively numbered per drought phase.
+
+Example:    
+NA NA NA 1 1 1 NA NA 2 2 NA NA (`event_nr`)  
+NA NA NA 1 2 3 NA NA 1 2 NA NA (`event_days_cumulative`)
+
+
+```{r eventseries_hydro}
+# available event series
+data_droughts %>% 
+  colnames()
+
+# select events based on a yearly fixed threshold definition (Q347)
+data_droughts <- data_droughts %>% 
+  dplyr::select(catchmentnr, date, contains("M7Q_Q347")) %>% 
+  # again: filter homogeneous time series
+  filter(date >= catchment_2034$start_date_usable)
+
+```
+
+
+## Example streamflow drought analyis
+
+In the last section, potential use cases and combination possibilities are demonstrated by analysing the temperature, precipitation and evaporation anomalies during streamflow drought events for the catchment *2034 - Broye, Payerne*.
+
+### Combining datasets
+
+The previously loaded anomalies can easily be combined with the streamflow drought event series as both all time series products share the columns `catchmentnr` and `date`.
+
+Note that for some datasets additional variables may be required for combination which in some cases must be manually created. For example to add DOY-based climatologies, both datasets must also contain the variable `doy` (day of year) which can be added via `mutate(doy = lubridate::yday(date))`).
+
+```{r combination}
+
+# combine anomalies with event series
+data_combined <- data_anomalies %>% 
+  left_join(data_droughts)
+
+```
+
+### Composite analysis: Hydro-meteorological indicators during streamflow droughts
+
+The time series now contain information on both the "normality" (or anomalousness) of the hydro-meteorological conditions as well as the dates where streamflow droughts occured. An interesting question now be if hydro-meteorological conditions differ between drought and non-drought phases. Further, hydro-meteorological conditions may also be more extreme for longer streamflow droughts.
+
+Here, we compare values between drought and non-drought phases for monthly (31d) temperature and evaporation anomalies. Note that temperature and evaporation originate from different gridded datasets. Here the data availability is longest for the streamflow time series (`start_date_homogeneous = 1924-12-31`). The HYD-RESPONSES data provides ERA5-LAND data from 1950 onwards. The MeteoSwiss TabsD product (daily average temperature) has the shortest data availability and starts in 1961. Events can therefore only be analysed after 1961.
+
+Boxplots for both temperature and evaporation show higher values during streamflow droughts and also boxplot-notches do not overlap!
+
+```{r events_nonevents}
+
+data_combined %>% 
+  # ensure data coverage for all products
+  filter(date >= dmy("01-01-1961")) %>% 
+  dplyr::select(
+    # keep information on drought phases
+    contains(c("_event_nr", "event_days_cumulative")),
+    # select monthly anomalies of temperature and evaporation
+    TabsD_mean_standardized_anomaly_31,
+    e_mean_mean_standardized_anomaly_31
+  ) %>% 
+  rename(
+    event_nr = M7Q_Q347_0_event_nr,
+    event_days_cumulative = M7Q_Q347_0_event_days_cumulative,
+    Temperature = TabsD_mean_standardized_anomaly_31,
+    Evaporation = e_mean_mean_standardized_anomaly_31
+  ) %>% 
+  # create a helper variable for drought / non-drought
+  mutate(
+    drought = !is.na(event_nr)
+  ) %>% 
+  # pivot for plotting
+  pivot_longer(
+    c("Temperature", "Evaporation")
+  ) %>% 
+  # visualize anomaly values
+  ggplot() +
+  geom_boxplot(
+    aes(name, value, color = drought),
+    notch = TRUE
+  ) +
+  ylab("Anomaly") + 
+  xlab("Variable") +
+  scale_color_manual(
+    "Drought", 
+    values = c("darkgreen", "tan2"), 
+    labels = c("no", "yes")
+  ) +
+  labs(title = "Anomalies during streamflow drought") +
+  coord_fixed(ratio = 0.2)
+  
+
+```
+
+You have reached the end of this tutorial! 
+
+More detailed information can be found in the HYD-RESPONSES documentation (Link). 
+
+Thank you for reading and have fun with the HYD-RESPONSES dataset! :-)
