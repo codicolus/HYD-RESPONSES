@@ -2,7 +2,7 @@
 title: "HYD-RESPONSES Code Examples"
 author: "Christoph von Matt"
 date: "`r Sys.Date()`"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -143,7 +143,7 @@ data_anomalies <- read_delim(
     dir_timeseries, "03_anomalies", "zscores", "HYDRESPONSES_zscores_scale_31_catchment_2034.csv"
   )
 ) %>% 
-  filter(date >= catchment_2034$start_date_usable)
+  filter(date >= catchment_2034$start_date_homogeneous)
 
 ```
 
@@ -205,7 +205,7 @@ ggplot(data_clim_monthly) +
     title = str_c(
       catchment_2034$catchmentnr, " - ", catchment_2034$water_name, " / ",
       catchment_2034$place, 
-      " (", catchment_2034$WISKI_regime_type, ")"
+      " (", catchment_2034$FOEN_regime_type, ")"
     )
   ) +
   coord_fixed(ratio = 0.5)
@@ -251,7 +251,7 @@ data_droughts %>%
 data_droughts <- data_droughts %>% 
   dplyr::select(catchmentnr, date, contains("M7Q_Q347")) %>% 
   # again: filter homogeneous time series
-  filter(date >= catchment_2034$start_date_usable)
+  filter(date >= catchment_2034$start_date_homogeneous)
 
 ```
 

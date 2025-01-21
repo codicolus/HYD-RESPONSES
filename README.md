@@ -145,12 +145,12 @@ catchment_outlets <- catchment_outlets %>%
   )
 ```
 
-    ## Rows: 184 Columns: 24
+    ## Rows: 184 Columns: 25
     ## ── Column specification ────────────────────────────────────────────────────────
     ## Delimiter: ";"
-    ## chr   (4): catchmentnr, water_name, place, WISKI_regime_type
-    ## dbl  (10): timespan_available_years, timespan_continuous_years, timespan_usa...
-    ## lgl   (4): totalstation, hauptstation, nebenstation, entirely_CH
+    ## chr   (5): catchmentnr, water_name, place, startpoint_source, FOEN_regime_type
+    ## dbl  (11): timespan_available_years, timespan_continuous_years, timespan_hom...
+    ## lgl   (3): total_station, main_station, side_station
     ## date  (6): start_date, end_date, start_date_continuous, end_date_continuous,...
     ## 
     ## ℹ Use `spec()` to retrieve the full column specification for this data.
@@ -178,8 +178,8 @@ catchment_outlets %>%
     ##  9 0491        Schächen    Bürglen, Galgenwäld… 1986-01-01 1986-01-01           
     ## 10 2009        Rhône       Porte du Scex        1905-01-01 1905-01-01           
     ## # ℹ 174 more rows
-    ## # ℹ 4 more variables: start_date_usable <date>, end_date <date>,
-    ## #   end_date_continuous <date>, end_date_usable <date>
+    ## # ℹ 4 more variables: start_date_homogeneous <date>, end_date <date>,
+    ## #   end_date_continuous <date>, end_date_homogeneous <date>
 
 ### Time series data
 
@@ -243,7 +243,7 @@ data_anomalies <- read_delim(
     dir_timeseries, "03_anomalies", "zscores", "HYDRESPONSES_zscores_scale_31_catchment_2034.csv"
   )
 ) %>% 
-  filter(date >= catchment_2034$start_date_usable)
+  filter(date >= catchment_2034$start_date_homogeneous)
 ```
 
     ## Rows: 38138 Columns: 91
@@ -383,7 +383,7 @@ ggplot(data_clim_monthly) +
     title = str_c(
       catchment_2034$catchmentnr, " - ", catchment_2034$water_name, " / ",
       catchment_2034$place, 
-      " (", catchment_2034$WISKI_regime_type, ")"
+      " (", catchment_2034$FOEN_regime_type, ")"
     )
   ) +
   coord_fixed(ratio = 0.5)
@@ -496,7 +496,7 @@ data_droughts %>%
 data_droughts <- data_droughts %>% 
   dplyr::select(catchmentnr, date, contains("M7Q_Q347")) %>% 
   # again: filter homogeneous time series
-  filter(date >= catchment_2034$start_date_usable)
+  filter(date >= catchment_2034$start_date_homogeneous)
 ```
 
 ## Example streamflow drought analyis
