@@ -1,7 +1,7 @@
 HYD-RESPONSES Code Examples
 ================
 Christoph von Matt
-2025-01-21
+2025-01-23
 
 ## Overview
 
@@ -354,7 +354,10 @@ season or extended_season contain the information on the specific
 category. For a monthly climatology this corresponds to the month
 (1–12), for season to *DJF* (winter), *MAM* (spring), *JJA* (summer) and
 *SON* (autumn) and for extended_season *summer* (May – October) and
-*winter* (November – March).
+*winter* (November – March). The DOY-based climatology does instead
+provide information DOY and the time scale specifies the moving-window
+size (e.g., daily = 1, monthly = 31, seasonal = 91, extended season =
+183).
 
 Here, we are only interested in the monthly streamflow (*Q*)
 climatology.
@@ -389,7 +392,7 @@ ggplot(data_clim_monthly) +
   coord_fixed(ratio = 0.5)
 ```
 
-![](https://github.com/codicolus/HYD-RESPONSES/blob/main/figs/Q_climatology.png)<!-- -->
+![](HYDRESPONSES_code_examples_files/figure-gfm/climatology_monthly-1.png)<!-- -->
 
 ### Streamflow drought events
 
@@ -499,7 +502,7 @@ data_droughts <- data_droughts %>%
   filter(date >= catchment_2034$start_date_homogeneous)
 ```
 
-## Example streamflow drought analyis
+## Example streamflow drought analysis
 
 In the last section, potential use cases and combination possibilities
 are demonstrated by analysing the temperature, precipitation and
@@ -592,7 +595,7 @@ data_combined %>%
     ## Warning: Removed 122 rows containing non-finite outside the scale range
     ## (`stat_boxplot()`).
 
-![](https://github.com/codicolus/HYD-RESPONSES/blob/main/figs/example_composite.png)<!-- -->
+![](HYDRESPONSES_code_examples_files/figure-gfm/events_nonevents-1.png)<!-- -->
 
 You have reached the end of this tutorial!
 
