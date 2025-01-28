@@ -1,7 +1,7 @@
 HYD-RESPONSES Code Examples
 ================
 Christoph von Matt
-2025-01-23
+2025-01-28
 
 ## Overview
 
@@ -10,8 +10,8 @@ products provided within the HYD-RESPONSES dataset (see source). The
 dataset consists of daily catchment-level time series data extracted
 from gridded hydro-meteorological datasets provided by MeteoSwiss,
 WSL/SLF and ECMWF. Further derived indicators related to snow, water
-balance, streamflow and deficit accumulation (CWD, SPI, SMRI, SPEI) are
-provided.
+balance, streamflow and deficit accumulation (CWD, CPWD, CQWD, SPI,
+SMRI, SPEI) are provided.
 
 The code examples provide a guidance on:
 
@@ -189,7 +189,7 @@ Time series are available for the following products:
 - `01_base_variables`: basic (non-altered) hydro-meteorological
   variables extracted from gridded products
 - `02_derived_variables`: information derived from basic variables on
-  snow ($$\Delta$$SWE), water balance (P-E) and streamflow (7d average
+  snow ($\Delta$SWE), water balance (P-E) and streamflow (7d average
   streamflow) and combinations thereof
 - `03_anomalies`: standardized anomalies (z-scores: (value - mean)/sd))
   for all variables across products and for multiple scales (daily,
