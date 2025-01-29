@@ -2,7 +2,7 @@
 title: "HYD-RESPONSES Code Examples"
 author: "Christoph von Matt"
 date: "`r Sys.Date()`"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Overview
 
 This documents provides an exploratory overview of the main data products provided
-within the HYD-RESPONSES dataset (see source). The dataset consists of daily catchment-level
+within the HYD-RESPONSES dataset (see [https://doi.org/10.5281/zenodo.14713274](https://doi.org/10.5281/zenodo.14713274)). The dataset consists of daily catchment-level
 time series data extracted from gridded hydro-meteorological datasets provided by
 MeteoSwiss, WSL/SLF and ECMWF. Further derived indicators related to snow, water balance,
 streamflow and deficit accumulation (CWD, CPWD, CQWD, SPI, SMRI, SPEI) are provided.

@@ -1,17 +1,18 @@
 HYD-RESPONSES Code Examples
 ================
 Christoph von Matt
-2025-01-28
+2025-01-29
 
 ## Overview
 
 This documents provides an exploratory overview of the main data
-products provided within the HYD-RESPONSES dataset (see source). The
-dataset consists of daily catchment-level time series data extracted
-from gridded hydro-meteorological datasets provided by MeteoSwiss,
-WSL/SLF and ECMWF. Further derived indicators related to snow, water
-balance, streamflow and deficit accumulation (CWD, CPWD, CQWD, SPI,
-SMRI, SPEI) are provided.
+products provided within the HYD-RESPONSES dataset (see
+<https://doi.org/10.5281/zenodo.14713274>). The dataset consists of
+daily catchment-level time series data extracted from gridded
+hydro-meteorological datasets provided by MeteoSwiss, WSL/SLF and ECMWF.
+Further derived indicators related to snow, water balance, streamflow
+and deficit accumulation (CWD, CPWD, CQWD, SPI, SMRI, SPEI) are
+provided.
 
 The code examples provide a guidance on:
 
