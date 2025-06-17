@@ -2,7 +2,7 @@
 title: "HYD-RESPONSES Code Examples"
 author: "Christoph von Matt"
 date: "`r Sys.Date()`"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -15,7 +15,7 @@ This documents provides an exploratory overview of the main data products provid
 within the HYD-RESPONSES dataset (see [https://doi.org/10.5281/zenodo.14713274](https://doi.org/10.5281/zenodo.14713274)). The dataset consists of daily catchment-level
 time series data extracted from gridded hydro-meteorological datasets provided by
 MeteoSwiss, WSL/SLF and ECMWF. Further derived indicators related to snow, water balance,
-streamflow and deficit accumulation (CWD, CPWD, CQWD, SPI, SMRI, SPEI) are provided.
+streamflow and deficit accumulation (CWD, PCWD, CQD, SPI, SMRI, SPEI) are provided.
 
 The code examples provide a guidance on:
 
@@ -214,7 +214,7 @@ ggplot(data_clim_monthly) +
 
 ### Streamflow drought events
 
-Time series on events defined by fixed and variable threshold definitions are provided for streamflow droughts (`hydrological_events`) and for cumulative deficits for both streamflow (*CQWD*) and (potential) water balance (*CWD* and *CPWD*). For the subsequent analysis we are interested in streamflow droughts phases.
+Time series on events defined by fixed and variable threshold definitions are provided for streamflow droughts (`hydrological_events`) and for cumulative deficits for both streamflow (*CQD*) and (potential) water balance (*CWD* and *PCWD*). For the subsequent analysis we are interested in streamflow droughts phases.
 
 ```{r eventseries}
 # check streamflow drought files

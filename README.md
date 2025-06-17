@@ -1,7 +1,7 @@
 HYD-RESPONSES Code Examples
 ================
 Christoph von Matt
-2025-01-29
+2025-05-31
 
 ## Overview
 
@@ -11,8 +11,7 @@ products provided within the HYD-RESPONSES dataset (see
 daily catchment-level time series data extracted from gridded
 hydro-meteorological datasets provided by MeteoSwiss, WSL/SLF and ECMWF.
 Further derived indicators related to snow, water balance, streamflow
-and deficit accumulation (CWD, CPWD, CQWD, SPI, SMRI, SPEI) are
-provided.
+and deficit accumulation (CWD, PCWD, CQD, SPI, SMRI, SPEI) are provided.
 
 The code examples provide a guidance on:
 
@@ -400,8 +399,8 @@ ggplot(data_clim_monthly) +
 
 Time series on events defined by fixed and variable threshold
 definitions are provided for streamflow droughts (`hydrological_events`)
-and for cumulative deficits for both streamflow (*CQWD*) and (potential)
-water balance (*CWD* and *CPWD*). For the subsequent analysis we are
+and for cumulative deficits for both streamflow (*CQD*) and (potential)
+water balance (*CWD* and *PCWD*). For the subsequent analysis we are
 interested in streamflow droughts phases.
 
 ``` r
@@ -594,8 +593,7 @@ data_combined %>%
   coord_fixed(ratio = 0.2)
 ```
 
-    ## Warning: Removed 122 rows containing non-finite outside the scale range
-    ## (`stat_boxplot()`).
+    ## Warning: Removed 122 rows containing non-finite values (`stat_boxplot()`).
 
 ![](HYDRESPONSES_code_examples_files/figure-gfm/events_nonevents-1.png)<!-- -->
 
